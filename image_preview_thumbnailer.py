@@ -145,7 +145,7 @@ def process_link(img_downloader, anchor_tag, url_match, config=PluginConfig()):
     if matching_filepaths:  # => a thumbnail has already been generated
         fs_thumb_filepath = matching_filepaths[0]
     else:
-        LOGGER.info("Thumbnail does not exist => downloading image from %s", anchor_tag['href'])
+        LOGGER.info("Thumbnail does not exist for %s => downloading image from %s", thumb_filename, anchor_tag['href'])
         tmp_thumb_filepath = img_downloader(url_match, config)
         if not tmp_thumb_filepath:  # => means the downloader failed to retrieve the image in a "supported" case
             with open(config.fs_thumbs_dir(thumb_filename + '.none'), 'w', encoding='utf8'):
@@ -331,8 +331,12 @@ def http_get(url, config=PluginConfig()):
         if response.status_code != 200 and config.silent_http_errors:
             LOGGER.error('%s HTTP error when fetching %s', response.status_code, url)
             return None
+        if response.status_code != 200:
+            LOGGER.debug(response.text)
         if response.status_code != 200 and b'captcha' in response.content:
             LOGGER.warning('CAPTCHA is likely to be required by page %s', url)
+        if response.status_code != 200 and b'CloudFront' in response.content:
+            LOGGER.warning('CloudFront is blocking request %s', url)
         response.raise_for_status()
         return response
 
