@@ -148,7 +148,8 @@ def process_link(img_downloader, anchor_tag, url_match, config=PluginConfig()):
         LOGGER.info("Thumbnail does not exist for %s => downloading image from %s", thumb_filename, anchor_tag['href'])
         tmp_thumb_filepath = img_downloader(url_match, config)
         if not tmp_thumb_filepath:  # => means the downloader failed to retrieve the image in a "supported" case
-            with open(config.fs_thumbs_dir(thumb_filename + '.none'), 'w', encoding='utf8'):
+            hostname = urlparse(anchor_tag['href']).netloc
+            with open(config.fs_thumbs_dir(f'{thumb_filename}.{hostname}.none'), 'w', encoding='utf8'):
                 pass
             return
         img_ext = os.path.splitext(tmp_thumb_filepath)[1]
@@ -357,7 +358,7 @@ def register():
 
 if __name__ == '__main__':
     html_filepath = sys.argv[1]
-    logging.basicConfig(format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+    logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s (pid:%(process)s) %(message)s",
                         datefmt="%H:%M:%S", level=logging.DEBUG)
     config = PluginConfig(dict(
         selector='article ul ul, h2:nth-of-type(3) + ul, h2:nth-of-type(4) + ul',
